@@ -15,6 +15,38 @@ const humidityEl = document.getElementById("humidity");
 const windSpeedEl = document.getElementById("windSpeed");
 const feelsLikeEl = document.getElementById("feelsLike");
 
+// Default condition on initial load
+document.body.dataset.condition = "clear-day";
+
+function updateTheme(data) {
+  if (!data || !data.weather || !data.weather[0]) {
+    document.body.dataset.condition = "clear-day";
+    return;
+  }
+
+  const main = data.weather[0].main;
+  const icon = data.weather[0].icon || "";
+  const isNight = icon.endsWith("n");
+
+  let condition = "clear-day";
+
+  if (main === "Thunderstorm") {
+    condition = "stormy";
+  } else if (main === "Rain" || main === "Drizzle") {
+    condition = "rainy";
+  } else if (main === "Snow") {
+    condition = "snowy";
+  } else if (main === "Clouds" || main === "Mist" || main === "Fog" || main === "Haze" || main === "Smoke" || main === "Dust" || main === "Sand" || main === "Ash" || main === "Squall" || main === "Tornado") {
+    condition = "cloudy";
+  } else if (main === "Clear") {
+    condition = isNight ? "night" : "clear-day";
+  } else if (isNight) {
+    condition = "night";
+  }
+
+  document.body.dataset.condition = condition;
+}
+
 async function getWeather(city) {
   const url = `${BASE_URL}?q=${encodeURIComponent(city)}&appid=${API_KEY}&units=metric`;
 
@@ -53,6 +85,8 @@ function displayWeather(data) {
   const iconCode = data.weather[0].icon;
   weatherIconEl.src = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
   weatherIconEl.alt = data.weather[0].description;
+
+  updateTheme(data);
 
   resultEl.classList.remove("hidden");
 }
